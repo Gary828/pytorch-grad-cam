@@ -241,7 +241,7 @@ if __name__ == '__main__':
     # Can work with any model, but it assumes that the model has a
     # feature method, and a classifier method,
     # as in the VGG models in torchvision.
-    model = models.resnet50(pretrained=True)
+    model = models.resnext50_32x4d(pretrained=True)
     grad_cam = GradCam(model=model, feature_module=model.layer4, \
                        target_layer_names=["2"], use_cuda=args.use_cuda)
 
