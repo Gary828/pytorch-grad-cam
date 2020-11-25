@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torch.autograd import Function
 from torchvision import models
-from torchsummary import summary
+#CUDA_VISIBLE_DEVICES=1 python my_script.pyfrom torchsummary import summary
 
 class FeatureExtractor():
 
@@ -107,27 +107,34 @@ class GradCam:
         one_hot = torch.from_numpy(one_hot).requires_grad_(True)
         if self.cuda:
             one_hot = torch.sum(one_hot.cuda() * output)
+       #     print(one_hot)
         else:
             one_hot = torch.sum(one_hot * output)
 
         self.feature_module.zero_grad()
         self.model.zero_grad()
         one_hot.backward(retain_graph=True)
-
+     #   print(np.shape(self.extractor.get_gradients()))
+     #   print("+++++",self.extractor.get_gradients()[-1])
         grads_val = self.extractor.get_gradients()[-1].cpu().data.numpy()
-
+      #  print(np.shape(grads_val))
+     #   print(np.shape(features))
         target = features[-1]
+     #   print(np.shape(target))
         target = target.cpu().data.numpy()[0,:]
+        print(target.shape)
         weights = np.mean(grads_val, axis=(2,3))[0,:]
         cam = np.zeros(target.shape[1:],dtype=np.float32)
-
+        print(cam.shape)
         for i, w in enumerate(weights):
             cam += w * target[i, :, :]
-
+        print(cam.shape)
         cam = np.maximum(cam, 0)
         cam = cv2.resize(cam, input.shape[2:])
         cam = cam - np.min(cam)
         cam = cam / np.max(cam)
+        #cv2.imwrite("cam.jpg", np.uint8(255 * cam))
+        cv2.imwrite("pure_cam.jpg",np.uint8(255 * cam))
         return cam
 
 class GuidedBackpropReLU(Function):
